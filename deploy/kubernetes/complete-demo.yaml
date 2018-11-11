@@ -36,6 +36,19 @@ spec:
             medium: Memory
       nodeSelector:
         beta.kubernetes.io/os: linux
+# apiVersion: v1
+#kind: PersistentVolumeClaim
+#metadata:
+#  name: mysql-pv-claim
+#  labels:
+#    app: wordpress
+#spec:
+#  accessModes:
+#    - ReadWriteOnce
+#  resources:
+ #   requests:
+ #     storage: 20Gi
+ # storageClassName: cvo-single
 ---
 apiVersion: v1
 kind: Service
