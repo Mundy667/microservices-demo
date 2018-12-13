@@ -1,39 +1,47 @@
----
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: apps/v1beta1
+kind: StatefulSet
 metadata:
   name: carts-db
   labels:
     name: carts-db
   namespace: sock-shop
 spec:
-  replicas: 1
+  serviceName: "carts-db"
+  replicas: 3
   template:
     metadata:
       labels:
         name: carts-db
+        role: mongo
+        environment: sock-shop
     spec:
+      terminationGracePeriodSeconds: 10
       containers:
       - name: carts-db
         image: mongo
+        command:
+          - mongod
+          - "--replSet"
+          - rs0
+          - "--smallfiles"
+          - "--noprealloc"        
         ports:
-        - name: mongo
+        - name: carts-db
           containerPort: 27017
-        securityContext:
-          capabilities:
-            drop:
-              - all
-            add:
-              - CHOWN
-              - SETGID
-              - SETUID
-          readOnlyRootFilesystem: true
         volumeMounts:
-        - mountPath: /tmp
-          name: tmp-volume
-      volumes:
-        - name: tmp-volume
-          emptyDir:
-            medium: Memory
-      nodeSelector:
-        beta.kubernetes.io/os: linux
+        - name: carts-db-pvc
+          mountPath: /data/db
+      - name: mongo-sidecar
+        image: cvallance/mongo-k8s-sidecar
+        env:
+          - name: MONGO_SIDECAR_POD_LABELS
+            value: "role=mongo,environment=sock-shop"        
+  volumeClaimTemplates:
+  - metadata:
+      name: carts-db-pvc
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "cvo-single"
+      resources:
+        requests:
+          storage: 100Gi

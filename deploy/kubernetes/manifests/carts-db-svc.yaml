@@ -11,5 +11,7 @@ spec:
     # the port that this service should serve on
   - port: 27017
     targetPort: 27017
+  clusterIP: None
   selector:
+    role: mongo
     name: carts-db
